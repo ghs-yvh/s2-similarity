@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Similar Triangles Lab V2: Dual Dynamic Canvas</title>
+<style>
+  :root {
+    --primary: #1e3a8a;
+    --accent: #2563eb;
+    --tri1: #0284c7;
+    --tri2: #e11d48;
+    --success-bg: #dcfce7;
+    --success-txt: #15803d;
+    --fail-bg: #fee2e2;
+    --fail-txt: #b91c1c;
+    --warn-bg: #fef3c7;
+    --warn-txt: #b45309;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --border: #cbd5e1;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+  body { background: var(--bg); color: #0f172a; padding: 16px; display: flex; justify-content: center; }
+  .container { max-width: 1200px; width: 100%; display: flex; flex-direction: column; gap: 16px; }
+
+  header { background: var(--card); padding: 16px 20px; border-radius: 10px; border: 1px solid var(--border); }
+  h1 { font-size: 1.35rem; color: var(--primary); margin-bottom: 4px; }
+  p.sub { font-size: 0.88rem; color: #64748b; }
+
+  .layout { display: grid; grid-template-columns: 360px 1fr; gap: 16px; }
+  @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+
+  .sidebar { display: flex; flex-direction: column; gap: 12px; }
+  .box { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  
+  .box-title { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; padding-bottom: 4px; }
+  .t1-title { color: var(--tri1); border-bottom: 2px solid var(--tri1); }
+  .t2-title { color: var(--tri2); border-bottom: 2px solid var(--tri2); }
+
+  .control-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+  .control-label { display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 600; }
+  .val { font-family: monospace; font-size: 0.9rem; }
+  input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--accent); }
+
+  .presets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  .btn { padding: 8px 10px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border); background: #fff; cursor: pointer; }
+  .btn:hover { background: #f1f5f9; }
+  .btn-action { width: 100%; padding: 10px; background: var(--accent); color: white; border: none; font-size: 0.88rem; font-weight: 700; border-radius: 6px; cursor: pointer; }
+  .btn-action:hover { background: #1d4ed8; }
+  .btn-active-overlay { background: #e11d48 !important; }
+
+  .canvas-panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+  canvas { width: 100%; height: auto; aspect-ratio: 2 / 1; background: #fafafa; border: 1px solid var(--border); border-radius: 6px; display: block; }
+
+  .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .metric-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
+  .metric-title { font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: #64748b; }
+  .metric-val { font-size: 1.15rem; font-weight: 800; font-family: monospace; margin-top: 2px; }
+
+  .angle-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: center; background: var(--bg); border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+  .angle-table th { background: #e2e8f0; padding: 6px; color: #334155; font-size: 0.74rem; }
+  .angle-table td { padding: 6px; font-family: monospace; border-top: 1px solid var(--border); }
+
+  .badge { padding: 10px 14px; border-radius: 8px; font-size: 0.88rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Similar Triangles Exploration Lab (Version 2)</h1>
+    <p class="sub">Investigate why "ratio of 2 sides, inc. &ang;" guarantees similarity, while non-matching angles or ratios fail.</p>
+  </header>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="box">
+        <div class="box-title t1-title">&Delta;ABC (Reference Triangle)</div>
+        <div class="control-row">
+          <div class="control-label">Side AB: <span class="val" id="val-ab">6.0</span></div>
+          <input type="range" id="sl-ab" min="3.0" max="8.0" step="0.5" value="6.0" oninput="runApp()">
+        </div>
+        <div class="control-row">
+          <div class="control-label">Side AC: <span class="val" id="val-ac">4.5</span></div>
+          <input type="range" id="sl-ac" min="2.0" max="7.0" step="0.5" value="4.5" oninput="runApp()">
+        </div>
+        <div class="control-row">
+          <div class="control-label">Included &ang;A: <span class="val" id="val-angA">50&deg;</span></div>
+          <input type="range" id="sl-angA" min="30" max="120" step="1" value="50" oninput="runApp()">
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="box-title t2-title">&Delta;DEF (Adjustable Triangle)</div>
+        <div class="control-row">
+          <div class="control-label">Side DE: <span class="val" id="val-de">9.0</span></div>
+          <input type="range" id="sl-de" min="2.0" max="11.0" step="0.2" value="9.0" oninput="runApp()">
+        </div>
+        <div class="control-row">
+          <div class="control-label">Side DF: <span class="val" id="val-df">6.8</span></div>
+          <input type="range" id="sl-df" min="2.0" max="10.0" step="0.2" value="6.8" oninput="runApp()">
+        </div>
+        <div class="control-row">
+          <div class="control-label">Included &ang;D: <span class="val" id="val-angD">50&deg;</span></div>
+          <input type="range" id="sl-angD" min="30" max="120" step="1" value="50" oninput="runApp()">
+        </div>
+      </div>
+
+      <div class="box">
+        <div style="font-size:0.76rem; font-weight:700; color:#64748b; margin-bottom:8px; text-transform:uppercase;">Teaching Presets</div>
+        <div class="presets">
+          <button class="btn" onclick="applyPreset('similar')">Similar (1.5&times;)</button>
+          <button class="btn" onclick="applyPreset('congruent')">Congruent (1.0&times;)</button>
+          <button class="btn" onclick="applyPreset('badAngle')">Equal Ratios, &ang; Wrong</button>
+          <button class="btn" onclick="applyPreset('badRatio')">&ang; Equal, Ratios Wrong</button>
+        </div>
+        <button class="btn-action" id="btn-overlay" onclick="toggleOverlay()">&#x2756; Superimpose &Delta;DEF on &Delta;ABC</button>
+      </div>
+    </div>
+
+    <div class="canvas-panel">
+      <canvas id="triCanvas" width="840" height="420"></canvas>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-title">Ratio 1: DE / AB</div>
+          <div class="metric-val" id="m-r1">-</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Ratio 2: DF / AC</div>
+          <div class="metric-val" id="m-r2">-</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Ratio 3: EF / BC</div>
+          <div class="metric-val" id="m-r3">-</div>
+        </div>
+      </div>
+
+      <table class="angle-table">
+        <thead>
+          <tr>
+            <th>Angles</th>
+            <th>Included: &ang;A vs &ang;D</th>
+            <th>&ang;B vs &ang;E</th>
+            <th>&ang;C vs &ang;F</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Degrees</strong></td>
+            <td id="ang-comp-1">-</td>
+            <td id="ang-comp-2">-</td>
+            <td id="ang-comp-3">-</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="badge" id="badge-status">
+        <span id="badge-title">Evaluating...</span>
+        <span id="badge-desc" style="font-weight:normal; font-size:0.8rem;"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let isSuperimposed = false;
+
+  function toRad(deg) { return (deg * Math.PI) / 180; }
+  function toDeg(rad) { return (rad * 180) / Math.PI; }
+
+  function solveTri(c, b, angDeg) {
+    const A = toRad(angDeg);
+    const a = Math.sqrt(b * b + c * c - 2 * b * c * Math.cos(A));
+    const cosB = (a * a + c * c - b * b) / (2 * a * c);
+    const B = Math.acos(Math.max(-1, Math.min(1, cosB)));
+    const C = Math.PI - A - B;
+    return { a, b, c, A, B, C, degA: angDeg, degB: toDeg(B), degC: toDeg(C) };
+  }
+
+  function toggleOverlay() {
+    isSuperimposed = !isSuperimposed;
+    const btn = document.getElementById('btn-overlay');
+    btn.innerHTML = isSuperimposed ? '&#x21c4; Separate Triangles' : '&#x2756; Superimpose &Delta;DEF on &Delta;ABC';
+    btn.classList.toggle('btn-active-overlay', isSuperimposed);
+    runApp();
+  }
+
+  function applyPreset(mode) {
+    const ab = parseFloat(document.getElementById('sl-ab').value);
+    const ac = parseFloat(document.getElementById('sl-ac').value);
+    const angA = parseFloat(document.getElementById('sl-angA').value);
+
+    if (mode === 'similar') {
+      document.getElementById('sl-de').value = (ab * 1.5).toFixed(1);
+      document.getElementById('sl-df').value = (ac * 1.5).toFixed(1);
+      document.getElementById('sl-angD').value = angA;
+    } else if (mode === 'congruent') {
+      document.getElementById('sl-de').value = ab.toFixed(1);
+      document.getElementById('sl-df').value = ac.toFixed(1);
+      document.getElementById('sl-angD').value = angA;
+    } else if (mode === 'badAngle') {
+      document.getElementById('sl-de').value = (ab * 1.4).toFixed(1);
+      document.getElementById('sl-df').value = (ac * 1.4).toFixed(1);
+      document.getElementById('sl-angD').value = angA > 75 ? angA - 25 : angA + 25;
+    } else if (mode === 'badRatio') {
+      document.getElementById('sl-de').value = (ab * 1.5).toFixed(1);
+      document.getElementById('sl-df').value = (ac * 0.9).toFixed(1);
+      document.getElementById('sl-angD').value = angA;
+    }
+    runApp();
+  }
+
+  function runApp() {
+    const ab = parseFloat(document.getElementById('sl-ab').value);
+    const ac = parseFloat(document.getElementById('sl-ac').value);
+    const angA = parseFloat(document.getElementById('sl-angA').value);
+
+    const de = parseFloat(document.getElementById('sl-de').value);
+    const df = parseFloat(document.getElementById('sl-df').value);
+    const angD = parseFloat(document.getElementById('sl-angD').value);
+
+    document.getElementById('val-ab').textContent = ab.toFixed(1);
+    document.getElementById('val-ac').textContent = ac.toFixed(1);
+    document.getElementById('val-angA').textContent = angA + '°';
+
+    document.getElementById('val-de').textContent = de.toFixed(1);
+    document.getElementById('val-df').textContent = df.toFixed(1);
+    document.getElementById('val-angD').textContent = angD + '°';
+
+    const t1 = solveTri(ab, ac, angA);
+    const t2 = solveTri(de, df, angD);
+
+    const canvas = document.getElementById('triCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const maxDimension = Math.max(ab, ac, de, df, t1.a, t2.a);
+    const scale = isSuperimposed 
+      ? Math.min(480 / maxDimension, 38)
+      : Math.min(270 / maxDimension, 27);
+
+    const baseLineY = 340;
+    const pA = isSuperimposed ? { x: 200, y: baseLineY } : { x: 120, y: baseLineY };
+    const pB = { x: pA.x + t1.c * scale, y: pA.y };
+    const pC = { x: pA.x + t1.b * scale * Math.cos(t1.A), y: pA.y - t1.b * scale * Math.sin(t1.A) };
+
+    const pD = isSuperimposed ? { x: pA.x, y: pA.y } : { x: 480, y: baseLineY };
+    const pE = { x: pD.x + t2.c * scale, y: pD.y };
+    const pF = { x: pD.x + t2.b * scale * Math.cos(t2.A), y: pD.y - t2.b * scale * Math.sin(t2.A) };
+
+    drawCanvasTri(ctx, pA, pB, pC, {
+      stroke: '#0284c7',
+      fill: isSuperimposed ? 'rgba(2, 132, 199, 0.12)' : 'rgba(2, 132, 199, 0.08)',
+      labels: ['A', 'B', 'C'],
+      angDeg: t1.degA,
+      sides: [`c = ${t1.c.toFixed(1)}`, `a = ${t1.a.toFixed(1)}`, `b = ${t1.b.toFixed(1)}`]
+    });
+
+    drawCanvasTri(ctx, pD, pE, pF, {
+      stroke: '#e11d48',
+      fill: isSuperimposed ? 'rgba(225, 29, 72, 0.16)' : 'rgba(225, 29, 72, 0.08)',
+      labels: ['D', 'E', 'F'],
+      angDeg: t2.degA,
+      sides: [`DE = ${t2.c.toFixed(1)}`, `EF = ${t2.a.toFixed(1)}`, `DF = ${t2.b.toFixed(1)}`]
+    });
+
+    const r1 = t2.c / t1.c;
+    const r2 = t2.b / t1.b;
+    const r3 = t2.a / t1.a;
+
+    document.getElementById('m-r1').textContent = r1.toFixed(2);
+    document.getElementById('m-r2').textContent = r2.toFixed(2);
+    document.getElementById('m-r3').textContent = r3.toFixed(2);
+
+    document.getElementById('ang-comp-1').textContent = `${t1.degA.toFixed(1)}° vs ${t2.degA.toFixed(1)}°`;
+    document.getElementById('ang-comp-2').textContent = `${t1.degB.toFixed(1)}° vs ${t2.degB.toFixed(1)}°`;
+    document.getElementById('ang-comp-3').textContent = `${t1.degC.toFixed(1)}° vs ${t2.degC.toFixed(1)}°`;
+
+    const ratiosEqual = Math.abs(r1 - r2) < 0.03;
+    const anglesEqual = Math.abs(t1.degA - t2.degA) < 0.5;
+    const thirdMatches = Math.abs(r1 - r3) < 0.03;
+
+    const badge = document.getElementById('badge-status');
+    const bTitle = document.getElementById('badge-title');
+    const bDesc = document.getElementById('badge-desc');
+
+    if (ratiosEqual && anglesEqual && thirdMatches) {
+      badge.style.background = 'var(--success-bg)';
+      badge.style.color = 'var(--success-txt)';
+      bTitle.innerHTML = '&#x2714; SIMILAR TRIANGLES: &Delta;DEF &sim; &Delta;ABC';
+      bDesc.textContent = 'Reason: ratio of 2 sides, inc. \u2220';
+    } else if (ratiosEqual && !anglesEqual) {
+      badge.style.background = 'var(--fail-bg)';
+      badge.style.color = 'var(--fail-txt)';
+      bTitle.innerHTML = '&#x2718; NOT SIMILAR: Included angles differ (&ang;A &ne; &ang;D)';
+      bDesc.textContent = `Side ratios = ${r1.toFixed(2)}, but 3rd side ratio (${r3.toFixed(2)}) diverged!`;
+    } else if (!ratiosEqual && anglesEqual) {
+      badge.style.background = 'var(--warn-bg)';
+      badge.style.color = 'var(--warn-txt)';
+      bTitle.innerHTML = '&#x26a0; NOT SIMILAR: Side ratios are not proportional';
+      bDesc.textContent = `DE/AB (${r1.toFixed(2)}) \u2260 DF/AC (${r2.toFixed(2)})`;
+    } else {
+      badge.style.background = 'var(--fail-bg)';
+      badge.style.color = 'var(--fail-txt)';
+      bTitle.innerHTML = '&#x2718; NOT SIMILAR: Neither ratios nor angles match';
+      bDesc.textContent = 'Both proportionality and angle equality fail.';
+    }
+  }
+
+  function drawCanvasTri(ctx, p1, p2, p3, style) {
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.lineTo(p3.x, p3.y);
+    ctx.closePath();
+    ctx.fillStyle = style.fill;
+    ctx.fill();
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = style.stroke;
+    ctx.stroke();
+
+    const rad = 28;
+    const angArm = Math.atan2(p3.y - p1.y, p3.x - p1.x);
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.arc(p1.x, p1.y, rad, 0, angArm, true);
+    ctx.closePath();
+    ctx.fillStyle = style.stroke + '26';
+    ctx.fill();
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    drawDot(ctx, p1.x, p1.y, style.stroke, `${style.labels[0]} (${style.angDeg.toFixed(0)}°)`, -24, 20);
+    drawDot(ctx, p2.x, p2.y, style.stroke, style.labels[1], 8, 18);
+    drawDot(ctx, p3.x, p3.y, style.stroke, style.labels[2], -8, -12);
+
+    drawText(ctx, (p1.x + p2.x) / 2, (p1.y + p2.y) / 2 + 18, style.sides[0], style.stroke);
+    drawText(ctx, (p2.x + p3.x) / 2 + 22, (p2.y + p3.y) / 2, style.sides[1], style.stroke);
+    drawText(ctx, (p1.x + p3.x) / 2 - 32, (p1.y + p3.y) / 2 - 6, style.sides[2], style.stroke);
+  }
+
+  function drawDot(ctx, x, y, color, text, ox, oy) {
+    ctx.beginPath();
+    ctx.arc(x, y, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    ctx.font = 'bold 12px system-ui';
+    ctx.fillText(text, x + ox, y + oy);
+  }
+
+  function drawText(ctx, x, y, text, color) {
+    ctx.font = '600 11px system-ui';
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+  }
+
+  runApp();
+  document.addEventListener('DOMContentLoaded', runApp);
+</script>
+</body>
+</html>

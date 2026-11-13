@@ -1,395 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Similar Triangles Lab: Ratio of 2 Sides, Incl. Angle</title>
-<style>
-  :root {
-    --primary: #1e3a8a;
-    --primary-light: #eff6ff;
-    --accent: #2563eb;
-    --success: #16a34a;
-    --danger: #dc2626;
-    --warning: #d97706;
-    --bg: #f8fafc;
-    --card-bg: #ffffff;
-    --border: #e2e8f0;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Similar Triangles Exploration Lab</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #dbe3ee;
+      --primary: #1e3a8a;
+      --accent: #2563eb;
+      --text: #0f172a;
+      --muted: #64748b;
+      --shadow: rgba(15, 23, 42, 0.08);
+    }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-  body { background: var(--bg); color: var(--text-main); padding: 20px; display: flex; flex-direction: column; align-items: center; }
-  
-  .container { max-width: 1200px; width: 100%; display: flex; flex-direction: column; gap: 20px; }
-  header { background: var(--card-bg); padding: 20px 24px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
-  h1 { font-size: 1.4rem; color: var(--primary); margin-bottom: 6px; }
-  p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #eef6ff 0%, var(--bg) 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+    }
 
-  .main-layout { display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
-  @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
+    .container {
+      width: min(1100px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
 
-  .control-card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 16px; }
-  .control-group { display: flex; flex-direction: column; gap: 6px; }
-  .control-label { display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 600; }
-  .control-label span.val { color: var(--accent); font-family: monospace; }
-  input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+    .hero {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 12px 30px var(--shadow);
+      padding: 28px 24px;
+    }
 
-  .mode-selector { display: flex; gap: 8px; background: var(--primary-light); padding: 4px; border-radius: 8px; }
-  .mode-btn { flex: 1; padding: 8px 10px; font-size: 0.85rem; font-weight: 600; border: none; background: transparent; cursor: pointer; border-radius: 6px; color: var(--primary); transition: all 0.2s; }
-  .mode-btn.active { background: var(--card-bg); color: var(--accent); box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      color: var(--primary);
+      line-height: 1.1;
+    }
 
-  .btn { padding: 10px 16px; font-size: 0.9rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
-  .btn-primary { background: var(--accent); color: white; }
-  .btn-primary:hover { background: #1d4ed8; }
-  .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
-  .btn-outline:hover { background: var(--bg); }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.02rem;
+      line-height: 1.6;
+      max-width: 860px;
+    }
 
-  .canvas-card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; gap: 14px; position: relative; }
-  svg { width: 100%; height: 460px; background: #fafafa; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
 
-  .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
-  .stat-box { background: var(--bg); padding: 12px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
-  .stat-title { font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 4px; }
-  .stat-value { font-size: 1.15rem; font-weight: 700; font-family: monospace; }
-  
-  .status-badge { padding: 12px 16px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between; }
-  .status-badge.success { background: #dcfce7; color: var(--success); border: 1px solid #bbf7d0; }
-  .status-badge.fail { background: #fee2e2; color: var(--danger); border: 1px solid #fecaca; }
-  .status-badge.warning { background: #fef3c7; color: var(--warning); border: 1px solid #fde68a; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 12px 30px var(--shadow);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
 
-  .legend-bar { display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-muted); align-items: center; }
-  .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-</style>
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.1);
+    }
+
+    .badge {
+      display: inline-block;
+      width: fit-content;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #dbeafe;
+      color: var(--primary);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.35rem;
+      color: var(--text);
+    }
+
+    p {
+      margin: 0;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .link-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      margin-top: auto;
+      padding: 12px 18px;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #ffffff;
+      font-weight: 700;
+      transition: background 0.15s ease;
+    }
+
+    .link-btn:hover {
+      background: #1d4ed8;
+    }
+  </style>
 </head>
 <body>
+  <div class="container">
+    <header class="hero">
+      <h1>Similar Triangles Exploration Lab</h1>
+      <p class="subtitle">
+        Two interactive classroom activities designed to help students investigate when triangles are similar,
+        especially the "ratio of 2 sides and the included angle" condition.
+      </p>
+    </header>
 
-<div class="container">
-  <header>
-    <h1>Exploration Lab: Conditions for Similar Triangles</h1>
-    <p class="subtitle">Investigate whether proportional sides and an included angle guarantee similarity (&ldquo;ratio of 2 sides, incl. angle&rdquo;).</p>
-  </header>
+    <div class="grid">
+      <article class="card">
+        <span class="badge">Version 1</span>
+        <h2>Included Angle / SAS Investigation</h2>
+        <p>
+          Explores how matching proportional sides and the included angle lead to similarity, while the SSA case can create a misleading ambiguous triangle.
+        </p>
+        <a class="link-btn" href="./S2_RatioOfTwoSidesIncAngle_v1.html">Open Version 1</a>
+      </article>
 
-  <div class="main-layout">
-    <div class="control-card">
-      <div class="control-group">
-        <label class="control-label">Investigation Mode</label>
-        <div class="mode-selector">
-          <button class="mode-btn active" id="mode-sas" onclick="setMode('sas')">Included &ang; (SAS)</button>
-          <button class="mode-btn" id="mode-ssa" onclick="setMode('ssa')">Non-Included &ang; (SSA)</button>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <div class="control-label">Side Scale Factor (k) <span class="val" id="val-k">1.50</span></div>
-        <input type="range" id="slider-k" min="0.6" max="2.2" step="0.1" value="1.5" oninput="updateValues()">
-      </div>
-
-      <div class="control-group">
-        <div class="control-label">Side DE Ratio Modifier <span class="val" id="val-de-mod">1.00&times;</span></div>
-        <input type="range" id="slider-de-mod" min="0.7" max="1.3" step="0.05" value="1.0" oninput="updateValues()">
-      </div>
-
-      <div class="control-group">
-        <div class="control-label">Angle &ang;D (or &ang;E) <span class="val" id="val-angle">50&deg;</span></div>
-        <input type="range" id="slider-angle" min="25" max="100" step="1" value="50" oninput="updateValues()">
-      </div>
-
-      <button class="btn btn-primary" id="btn-overlay" onclick="toggleOverlay()">
-        <span id="overlay-text">&#x2756; Superimpose / Overlay Triangles</span>
-      </button>
-
-      <button class="btn btn-outline" onclick="resetToCongruent()">
-        &#x21bb; Match Exactly (k = 1.0, &ang; = 50&deg;)
-      </button>
-
-      <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; padding-top: 8px; border-top: 1px solid var(--border);">
-        <strong>Tip:</strong> In <em>Included Angle</em> mode, set the modifier to <code>1.00&times;</code> and align &ang;D to <code>50&deg;</code> to observe similarity. In <em>Non-Included</em> mode, observe how swinging side DF creates a second, non-similar triangle.
-      </div>
-    </div>
-
-    <div class="canvas-card">
-      <div class="legend-bar">
-        <span><span class="legend-dot" style="background: #3b82f6;"></span> Fixed Reference &Delta;ABC</span>
-        <span><span class="legend-dot" style="background: #e11d48;"></span> Movable &Delta;DEF</span>
-      </div>
-
-      <svg id="geo-svg" viewBox="0 0 760 440"></svg>
-
-      <div class="dashboard">
-        <div class="stat-box">
-          <div class="stat-title">DE / AB</div>
-          <div class="stat-value" id="ratio-1">-</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-title">DF / AC</div>
-          <div class="stat-value" id="ratio-2">-</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-title">EF / BC (3rd Side)</div>
-          <div class="stat-value" id="ratio-3">-</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-title">&ang;D vs &ang;A</div>
-          <div class="stat-value" id="angle-comp">-</div>
-        </div>
-      </div>
-
-      <div class="status-badge" id="status-card">
-        <span id="status-text">Checking Similarity...</span>
-        <span id="status-reason" style="font-size: 0.85rem; font-weight: normal;"></span>
-      </div>
+      <article class="card">
+        <span class="badge">Version 2</span>
+        <h2>Dual Dynamic Canvas</h2>
+        <p>
+          Uses a side-by-side and overlay comparison to analyze similar triangles, equal ratios, and mismatched angle conditions in a more visual format.
+        </p>
+        <a class="link-btn" href="./S2_RatioOfTwoSidesIncAngle_v2.html">Open Version 2</a>
+      </article>
     </div>
   </div>
-</div>
-
-<script>
-  let mode = 'sas';
-  let isSuperimposed = false;
-
-  const baseTri = {
-    c: 6.0,
-    b: 4.5,
-    angleA: 50,
-  };
-
-  const toRad = deg => (deg * Math.PI) / 180;
-  const toDeg = rad => (rad * 180) / Math.PI;
-
-  function calcBaseTriangle() {
-    const c = baseTri.c;
-    const b = baseTri.b;
-    const A = toRad(baseTri.angleA);
-    const a = Math.sqrt(b*b + c*c - 2*b*c*Math.cos(A));
-    const B = Math.asin(Math.min(1, Math.max(-1, (b * Math.sin(A)) / a)));
-    const C = Math.PI - A - B;
-    return { a, b, c, A, B, C };
-  }
-
-  function setMode(m) {
-    mode = m;
-    document.getElementById('mode-sas').classList.toggle('active', mode === 'sas');
-    document.getElementById('mode-ssa').classList.toggle('active', mode === 'ssa');
-    updateValues();
-  }
-
-  function toggleOverlay() {
-    isSuperimposed = !isSuperimposed;
-    document.getElementById('overlay-text').innerHTML = isSuperimposed 
-      ? '&#x21c4; Separate Triangles' 
-      : '&#x2756; Superimpose / Overlay Triangles';
-    document.getElementById('btn-overlay').classList.toggle('btn-primary', !isSuperimposed);
-    document.getElementById('btn-overlay').classList.toggle('btn-outline', isSuperimposed);
-    render();
-  }
-
-  function resetToCongruent() {
-    document.getElementById('slider-k').value = 1.0;
-    document.getElementById('slider-de-mod').value = 1.0;
-    document.getElementById('slider-angle').value = 50;
-    updateValues();
-  }
-
-  function updateValues() {
-    const k = parseFloat(document.getElementById('slider-k').value);
-    const deMod = parseFloat(document.getElementById('slider-de-mod').value);
-    const angle = parseFloat(document.getElementById('slider-angle').value);
-
-    document.getElementById('val-k').textContent = k.toFixed(2);
-    document.getElementById('val-de-mod').textContent = deMod.toFixed(2) + 'x';
-    document.getElementById('val-angle').textContent = angle + '°';
-
-    render();
-  }
-
-  function render() {
-    const svg = document.getElementById('geo-svg');
-    svg.innerHTML = '';
-
-    const k = parseFloat(document.getElementById('slider-k').value);
-    const deMod = parseFloat(document.getElementById('slider-de-mod').value);
-    const angleD_deg = parseFloat(document.getElementById('slider-angle').value);
-
-    const base = calcBaseTriangle();
-    const pxScale = 32;
-
-    const A_pt = { x: 90, y: 340 };
-    const B_pt = { x: A_pt.x + base.c * pxScale, y: A_pt.y };
-    const C_pt = { 
-      x: A_pt.x + base.b * pxScale * Math.cos(base.A), 
-      y: A_pt.y - base.b * pxScale * Math.sin(base.A) 
-    };
-
-    let D_pt, E_pt, F_pt, F2_pt = null;
-    let de_len, df_len, ef_len, angleD_val, angleE_val;
-
-    if (mode === 'sas') {
-      de_len = base.c * k * deMod;
-      df_len = base.b * k;
-      angleD_val = toRad(angleD_deg);
-
-      ef_len = Math.sqrt(de_len*de_len + df_len*df_len - 2*de_len*df_len*Math.cos(angleD_val));
-
-      if (isSuperimposed) {
-        D_pt = { x: A_pt.x, y: A_pt.y };
-      } else {
-        D_pt = { x: 420, y: 340 };
-      }
-
-      E_pt = { x: D_pt.x + de_len * pxScale, y: D_pt.y };
-      F_pt = { 
-        x: D_pt.x + df_len * pxScale * Math.cos(angleD_val), 
-        y: D_pt.y - df_len * pxScale * Math.sin(angleD_val) 
-      };
-    } else {
-      de_len = base.c * k * deMod;
-      ef_len = base.a * k;
-      angleE_val = toRad(angleD_deg);
-
-      D_pt = isSuperimposed ? { x: A_pt.x, y: A_pt.y } : { x: 420, y: 340 };
-      E_pt = { x: D_pt.x + de_len * pxScale, y: D_pt.y };
-
-      const h = ef_len * Math.sin(angleE_val);
-      const ambig = (ef_len < de_len && ef_len > h);
-
-      F_pt = {
-        x: E_pt.x - ef_len * pxScale * Math.cos(angleE_val),
-        y: E_pt.y - ef_len * pxScale * Math.sin(angleE_val)
-      };
-
-      if (ambig) {
-        F2_pt = {
-          x: E_pt.x - ef_len * pxScale * Math.cos(Math.PI - angleE_val),
-          y: E_pt.y - ef_len * pxScale * Math.sin(Math.PI - angleE_val)
-        };
-      }
-      df_len = Math.hypot(F_pt.x - D_pt.x, F_pt.y - D_pt.y) / pxScale;
-    }
-
-    drawTriangle(svg, A_pt, B_pt, C_pt, {
-      stroke: '#2563eb',
-      fill: 'rgba(37, 99, 235, 0.08)',
-      labels: ['A (50°)', `B`, `C`],
-      sides: [`c = ${base.c.toFixed(1)}`, `a = ${base.a.toFixed(1)}`, `b = ${base.b.toFixed(1)}`]
-    });
-
-    if (mode === 'ssa' && !isSuperimposed) {
-      const compassRadius = ef_len * pxScale;
-      const compassCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      compassCircle.setAttribute('cx', E_pt.x);
-      compassCircle.setAttribute('cy', E_pt.y);
-      compassCircle.setAttribute('r', compassRadius);
-      compassCircle.setAttribute('fill', 'none');
-      compassCircle.setAttribute('stroke', '#f43f5e');
-      compassCircle.setAttribute('stroke-dasharray', '4,4');
-      compassCircle.setAttribute('stroke-width', '1.5');
-      svg.appendChild(compassCircle);
-    }
-
-    drawTriangle(svg, D_pt, E_pt, F_pt, {
-      stroke: '#e11d48',
-      fill: isSuperimposed ? 'rgba(225, 29, 72, 0.18)' : 'rgba(225, 29, 72, 0.08)',
-      labels: [`D (${mode==='sas'?angleD_deg+'°':''})`, `E`, `F`],
-      sides: [`DE = ${de_len.toFixed(1)}`, `EF = ${ef_len.toFixed(1)}`, `DF = ${df_len.toFixed(1)}`]
-    });
-
-    if (F2_pt && mode === 'ssa') {
-      const altTri = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-      altTri.setAttribute('points', `${D_pt.x},${D_pt.y} ${E_pt.x},${E_pt.y} ${F2_pt.x},${F2_pt.y}`);
-      altTri.setAttribute('fill', 'rgba(245, 158, 11, 0.15)');
-      altTri.setAttribute('stroke', '#f59e0b');
-      altTri.setAttribute('stroke-width', '1.5');
-      altTri.setAttribute('stroke-dasharray', '5,3');
-      svg.appendChild(altTri);
-    }
-
-    const r1 = de_len / base.c;
-    const r2 = df_len / base.b;
-    const r3 = ef_len / base.a;
-
-    document.getElementById('ratio-1').textContent = r1.toFixed(2);
-    document.getElementById('ratio-2').textContent = r2.toFixed(2);
-    document.getElementById('ratio-3').textContent = r3.toFixed(2);
-
-    const isSideRatioEqual = Math.abs(r1 - r2) < 0.03;
-    const is3rdRatioEqual = Math.abs(r1 - r3) < 0.03;
-    const isAngleEqual = Math.abs(angleD_deg - 50) < 0.5;
-
-    document.getElementById('angle-comp').textContent = `${angleD_deg}° vs 50°`;
-
-    const statusCard = document.getElementById('status-card');
-    const statusText = document.getElementById('status-text');
-    const statusReason = document.getElementById('status-reason');
-
-    if (mode === 'sas') {
-      if (isSideRatioEqual && isAngleEqual && is3rdRatioEqual) {
-        statusCard.className = 'status-badge success';
-        statusText.innerHTML = '&#x2714; SIMILAR TRIANGLES: &Delta;DEF &sim; &Delta;ABC';
-        statusReason.textContent = 'Reason: ratio of 2 sides, incl. angle';
-      } else if (isSideRatioEqual && !isAngleEqual) {
-        statusCard.className = 'status-badge fail';
-        statusText.innerHTML = '&#x2718; NOT SIMILAR: Included angles differ (&ang;D &ne; &ang;A)';
-        statusReason.textContent = 'Side ratios equal, but 3rd side ratio fails';
-      } else {
-        statusCard.className = 'status-badge warning';
-        statusText.innerHTML = '&#x26a0; NOT SIMILAR: Side ratios are not proportional';
-        statusReason.textContent = `DE/AB (${r1.toFixed(2)}) ≠ DF/AC (${r2.toFixed(2)})`;
-      }
-    } else {
-      statusCard.className = 'status-badge fail';
-      statusText.innerHTML = '&#x2718; SSA Trap: Non-Included Angle does NOT guarantee similarity!';
-      statusReason.textContent = 'Notice the swinging compass arc cuts two possible triangles.';
-    }
-  }
-
-  function drawTriangle(svg, p1, p2, p3, style) {
-    const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    poly.setAttribute('points', `${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`);
-    poly.setAttribute('fill', style.fill);
-    poly.setAttribute('stroke', style.stroke);
-    poly.setAttribute('stroke-width', '2.5');
-    svg.appendChild(poly);
-
-    drawPoint(svg, p1.x, p1.y, style.stroke, style.labels[0], -14, 18);
-    drawPoint(svg, p2.x, p2.y, style.stroke, style.labels[1], 10, 18);
-    drawPoint(svg, p3.x, p3.y, style.stroke, style.labels[2], -6, -12);
-
-    drawLabel(svg, (p1.x + p2.x)/2, (p1.y + p2.y)/2 + 16, style.sides[0], style.stroke);
-    drawLabel(svg, (p2.x + p3.x)/2 + 18, (p2.y + p3.y)/2, style.sides[1], style.stroke);
-    drawLabel(svg, (p1.x + p3.x)/2 - 28, (p1.y + p3.y)/2, style.sides[2], style.stroke);
-  }
-
-  function drawPoint(svg, x, y, color, label, ox, oy) {
-    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    c.setAttribute('cx', x);
-    c.setAttribute('cy', y);
-    c.setAttribute('r', 4.5);
-    c.setAttribute('fill', color);
-    svg.appendChild(c);
-
-    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    t.setAttribute('x', x + ox);
-    t.setAttribute('y', y + oy);
-    t.setAttribute('fill', color);
-    t.setAttribute('font-size', '12px');
-    t.setAttribute('font-weight', '700');
-    t.textContent = label;
-    svg.appendChild(t);
-  }
-
-  function drawLabel(svg, x, y, text, color) {
-    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    t.setAttribute('x', x);
-    t.setAttribute('y', y);
-    t.setAttribute('fill', color);
-    t.setAttribute('font-size', '11px');
-    t.setAttribute('font-weight', '600');
-    t.textContent = text;
-    svg.appendChild(t);
-  }
-
-  updateValues();
-</script>
 </body>
 </html>
